@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 from langchain.tools import BaseTool
 
@@ -12,8 +11,10 @@ from .config import Settings
 
 
 class LocalTimeTool(BaseTool):
-    name = "get_local_time"
-    description = "Useful for answering questions that depend on the current local date and time."
+    name: str = "get_local_time"
+    description: str = (
+        "Useful for answering questions that depend on the current local date and time."
+    )
 
     def _run(self, _: str) -> str:  # type: ignore[override]
         return datetime.now().isoformat(timespec="seconds")
@@ -23,8 +24,8 @@ class LocalTimeTool(BaseTool):
 
 
 class NotesTool(BaseTool):
-    name = "append_to_notes"
-    description = (
+    name: str = "append_to_notes"
+    description: str = (
         "Persist important discoveries about the user's data operations environment. "
         "Input should be a concise sentence you want to append to the notes file."
     )

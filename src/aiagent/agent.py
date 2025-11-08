@@ -1,32 +1,103 @@
 """LangChain agent factory."""
 
-from langchain.agents import AgentExecutor, AgentType, initialize_agent
+from __future__ import annotations
+
+from typing import Final
+
+from langchain.agents import create_agent
 from langchain_openai import ChatOpenAI
+from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
+from langgraph.graph.state import CompiledStateGraph
 
 from .config import Settings
 from .tools import build_default_tools
 
+REACT_SYSTEM_PROMPT: Final[str] = (
+    "You are a focused data-operations copilot. "
+    "Think step-by-step, citing the reasoning that leads you to call the available tools. "
+    "Prefer tool output over assumptions whenever data is required."
+)
+CONVERSATIONAL_SYSTEM_PROMPT: Final[str] = (
+    "You are a personable data-operations copilot. "
+    "Maintain awareness of conversation history, explain your reasoning, "
+    "and call the provided tools for any factual lookup or note taking."
+)
+SYSTEM_PROMPTS: Final[dict[str, str]] = {
+    "react": REACT_SYSTEM_PROMPT,
+    "conversational": CONVERSATIONAL_SYSTEM_PROMPT,
+}
 
-def build_agent(settings: Settings) -> AgentExecutor:
-    """Construct the LangChain agent executor."""
-    llm = ChatOpenAI(
-        model=settings.model_name,
-        temperature=settings.temperature,
-        api_key=settings.openai_api_key,
-        base_url=settings.openai_base_url,
+
+def _sanitize_env_value(raw_value: str | None) -> str | None:
+    """Trim whitespace/comment-only env values so config is easier to manage."""
+    if not raw_value:
+        return None
+    cleaned = raw_value.strip()
+    if not cleaned or cleaned.startswith("#"):
+        return None
+    return cleaned
+
+
+def _build_text_model(settings: Settings) -> HuggingFaceEndpoint:
+    """Return the base text-generation LLM used by the chat wrapper."""
+    base_kwargs = {
+        "huggingfacehub_api_token": settings.hf_api_token,
+        "max_new_tokens": settings.max_new_tokens,
+        "temperature": settings.temperature,
+    }
+    endpoint_url = _sanitize_env_value(settings.hf_endpoint_url)
+    if endpoint_url:
+        return HuggingFaceEndpoint(
+            endpoint_url=endpoint_url,
+            **base_kwargs,
+        )
+    return HuggingFaceEndpoint(
+        repo_id=settings.model_name,
+        **base_kwargs,
     )
+
+
+def _build_openai_chat_model(settings: Settings) -> ChatOpenAI:
+    """Return a ChatOpenAI instance configured from the Settings."""
+    api_key = _sanitize_env_value(settings.openai_api_key)
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY must be set when LLM_PROVIDER=openai.")
+
+    init_kwargs: dict[str, object] = {
+        "model": settings.model_name,
+        "temperature": settings.temperature,
+        "max_tokens": settings.max_new_tokens,
+        "api_key": api_key,
+    }
+    base_url = _sanitize_env_value(settings.openai_base_url)
+    if base_url:
+        init_kwargs["base_url"] = base_url
+    return ChatOpenAI(**init_kwargs)
+
+
+def _build_chat_model(settings: Settings):
+    """Dispatch to the correct chat model based on configuration."""
+    provider = settings.llm_provider.lower()
+    if provider == "openai":
+        return _build_openai_chat_model(settings)
+    if provider == "huggingface":
+        return ChatHuggingFace(llm=_build_text_model(settings))
+    raise ValueError(f"Unsupported LLM provider: {settings.llm_provider}")
+
+
+def _system_prompt(mode: str) -> str:
+    """Return the system prompt associated with the configured mode."""
+    return SYSTEM_PROMPTS.get(mode, REACT_SYSTEM_PROMPT)
+
+
+def build_agent(settings: Settings) -> CompiledStateGraph:
+    """Construct the LangChain agent executor."""
+    chat_llm = _build_chat_model(settings)
 
     tools = build_default_tools(settings)
-    agent_type = (
-        AgentType.ZERO_SHOT_REACT_DESCRIPTION
-        if settings.agent_mode == "react"
-        else AgentType.CONVERSATIONAL_REACT_DESCRIPTION
-    )
-
-    return initialize_agent(
+    return create_agent(
+        model=chat_llm,
         tools=tools,
-        llm=llm,
-        agent=agent_type,
-        verbose=settings.verbose,
-        handle_parsing_errors=True,
+        system_prompt=_system_prompt(settings.agent_mode),
+        debug=settings.verbose,
     )

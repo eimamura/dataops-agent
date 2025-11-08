@@ -12,12 +12,16 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=(".env",), env_file_encoding="utf-8", extra="ignore")
 
-    openai_api_key: str = Field(..., alias="OPENAI_API_KEY")
-    openai_base_url: str | None = Field(default=None, alias="OPENAI_BASE_URL")
-    model_name: str = Field(default="gpt-4o-mini", alias="MODEL_NAME")
+    hf_api_token: str | None = Field(default=None, alias="HUGGINGFACEHUB_API_TOKEN")
+    hf_endpoint_url: str | None = Field(default=None, alias="HUGGINGFACE_ENDPOINT_URL")
+    model_name: str = Field(default="meta-llama/Meta-Llama-3-8B-Instruct", alias="MODEL_NAME")
+    max_new_tokens: int = Field(default=512, alias="MAX_NEW_TOKENS")
     temperature: float = 0.0
     agent_mode: Literal["react", "conversational"] = "react"
     verbose: bool = Field(default=False, alias="AGENT_VERBOSITY")
+    llm_provider: Literal["huggingface", "openai"] = Field(default="huggingface", alias="LLM_PROVIDER")
+    openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
+    openai_base_url: str | None = Field(default=None, alias="OPENAI_API_BASE")
     notes_path: str = "notes.md"
 
 

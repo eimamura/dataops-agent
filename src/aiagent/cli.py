@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Any, Optional
 
 import typer
 from rich.console import Console
@@ -53,13 +53,42 @@ def main(
 
 def _run_once(agent, user_input: str) -> None:
     try:
-        response = agent.invoke({"input": user_input})
+        response = agent.invoke({"messages": _as_user_messages(user_input)})
     except Exception as exc:  # pragma: no cover - surface to CLI
         console.print(f"[red]Agent failed:[/] {exc}")
         return
 
-    output = response.get("output") if isinstance(response, dict) else response
-    console.print(f"[magenta]Agent:[/] {output}")
+    console.print(f"[magenta]Agent:[/] {_extract_text_response(response)}")
+
+
+def _as_user_messages(user_input: str) -> list[dict[str, str]]:
+    """Shape CLI input in the format LangGraph expects."""
+    return [{"role": "user", "content": user_input}]
+
+
+def _extract_text_response(response: Any) -> str:
+    """Coerce the agent response into printable text."""
+    if isinstance(response, dict):
+        messages = response.get("messages")
+        if isinstance(messages, list) and messages:
+            message = messages[-1]
+            content = getattr(message, "content", None)
+            if isinstance(content, str):
+                return content
+            if isinstance(content, list):
+                parts = [
+                    chunk.get("text", "")
+                    for chunk in content
+                    if isinstance(chunk, dict) and chunk.get("type") == "text"
+                ]
+                text = "\n".join(part for part in parts if part)
+                if text:
+                    return text
+            if isinstance(message, dict):
+                text = message.get("content")
+                if isinstance(text, str):
+                    return text
+    return str(response)
 
 
 if __name__ == "__main__":
