@@ -1,0 +1,3 @@
+- Purpose: Infrastructure-as-code project that provisions AWS resources (currently an RDS PostgreSQL instance) for the dataops-agent via Terraform.
+- Tech stack: Terraform v1.5+, AWS provider ~> 5.0, AWS RDS/PostgreSQL, standard AWS networking (VPC, subnet groups, security groups).
+- Structure: Root module with `providers.tf`, `variables.tf`, `main.tf`, `outputs.tf`, and documentation in `README.md`. Resources currently include an RDS DB subnet group, security group, and DB instance plus all configurable inputs.

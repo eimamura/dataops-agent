@@ -1,0 +1,4 @@
+- Use Terraform HCL with descriptive variable names and merge common tags through `locals`.
+- Keep resources modular (provider config in `providers.tf`, data plane in `main.tf`, I/O in `variables.tf`/`outputs.tf`).
+- Secrets such as DB passwords should come from environment variables or encrypted tfvars and must never be committed.
+- Run `terraform fmt` to enforce formatting and prefer Terraform-native validation/conditionals for optional inputs.

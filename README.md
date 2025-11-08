@@ -34,6 +34,24 @@ Use `python -m aiagent.cli --help` for interactive mode and options such as enab
 - `OPENAI_API_KEY` / `OPENAI_API_BASE`: required when `LLM_PROVIDER=openai` (base URL only when targeting Azure or compatible endpoints).
 - `MAX_NEW_TOKENS`: cap responses for predictable billing/perf.
 
+## Local Postgres (Docker)
+We ship a `compose.yaml` that provisions PostgreSQL 16 for local persistence and agent experimentation.
+
+1. Create a password secret (ignored via `.gitignore`):
+   ```bash
+   mkdir -p .secrets
+   echo 'super-strong-pass' > .secrets/postgres_password
+   ```
+2. Optional: adjust `POSTGRES_DB`, `POSTGRES_USER`, or `POSTGRES_PORT` in your shell before starting.
+3. Launch the database:
+   ```bash
+   docker compose up -d postgres
+   ```
+4. A named volume (`postgres-data`) stores data; remove it to reset.
+5. `infra/postgres/initdb.sql` seeds the `dataops` schema with `users`, `products`, and `sales` tables—edit this file to customize bootstrap data.
+
+`pg_isready` health checks ensure the service reports healthy only after accepting connections. Connect via `psql postgres://dataops:changeme@localhost:5432/dataops`.
+
 ## Tests & Linting
 ```bash
 pytest

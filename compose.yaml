@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: dataops-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-dataops}
+      POSTGRES_USER: ${POSTGRES_USER:-dataops}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres-password
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - back-tier
+    configs:
+      - source: postgres-init
+        target: /docker-entrypoint-initdb.d/init.sql
+    secrets:
+      - postgres-password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dataops} -d ${POSTGRES_DB:-dataops}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:
+    driver: local
+
+configs:
+  postgres-init:
+    file: infra/postgres/initdb.sql
+
+secrets:
+  postgres-password:
+    file: .secrets/postgres_password
+
+networks:
+  # The presence of these objects is sufficient to define them
+  front-tier: {}
+  back-tier: {}

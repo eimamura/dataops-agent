@@ -1,0 +1,1 @@
+Before handing over changes, ensure `terraform fmt` and `terraform validate` succeed, run `terraform plan` against the relevant tfvars file to prove changes are sound, and document any necessary apply/destroy flags (e.g., requirements around `final_snapshot_identifier`).

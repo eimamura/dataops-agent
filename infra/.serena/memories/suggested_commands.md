@@ -1,0 +1,5 @@
+- `terraform init` – download providers for the module.
+- `terraform fmt` – enforce canonical formatting before commits.
+- `terraform validate` – static validation of the configuration.
+- `terraform plan -var-file=<env>.tfvars` – review proposed changes for an environment.
+- `terraform apply -var-file=<env>.tfvars` – create or update the stack after reviewing the plan.
