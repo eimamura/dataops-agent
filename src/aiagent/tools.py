@@ -16,10 +16,10 @@ class LocalTimeTool(BaseTool):
         "Useful for answering questions that depend on the current local date and time."
     )
 
-    def _run(self, _: str) -> str:  # type: ignore[override]
+    def _run(self, _: str | None = None) -> str:  # type: ignore[override]
         return datetime.now().isoformat(timespec="seconds")
 
-    async def _arun(self, _: str) -> str:  # type: ignore[override]
+    async def _arun(self, _: str | None = None) -> str:  # type: ignore[override]
         return self._run("")
 
 
