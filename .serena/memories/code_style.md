@@ -1,0 +1,3 @@
+- Use modern Python with type hints and docstrings where helpful; follow LangChain idioms (ChatOpenAI, BaseTool subclasses) and keep functions small.
+- Formatting/linting handled via Ruff with 100-char line length and py311 target; keep modules ASCII and prefer descriptive function names.
+- Config flows through `Settings` (Pydantic BaseSettings) and should be accessed via helpers like `get_settings()` or `model_copy(update=...)` for overrides.

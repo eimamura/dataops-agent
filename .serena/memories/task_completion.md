@@ -1,0 +1,1 @@
+Before finishing a task run unit tests with `pytest` (once tests exist) and lint with `ruff check .`. For CLI-facing changes, run a smoke test via `python -m aiagent.cli "your prompt"` or interactive mode. Summarize changes plus verification status in the final response.

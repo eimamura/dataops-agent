@@ -1,0 +1,6 @@
+- Setup venv: `uv venv && source .venv/bin/activate` (or `python -m venv .venv`).
+- Install deps: `uv pip install -e ".[dev]"` (or `pip install -e ".[dev]"`).
+- Run agent once: `python -m aiagent.cli "Summarize airflow DAG health"`.
+- Start interactive chat: `python -m aiagent.cli --interactive`.
+- Lint: `ruff check .`
+- Tests: `pytest` (future tests go under `tests/`).

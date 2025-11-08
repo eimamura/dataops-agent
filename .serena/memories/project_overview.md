@@ -1,0 +1,3 @@
+- Purpose: LangChain-based AI agent playground focused on data-operations workflows; exposes a CLI runner and scaffolding for adding custom tools.
+- Tech stack: Python 3.11+, LangChain core/community/OpenAI, Typer + Rich for CLI UX, Pydantic Settings for configuration.
+- Structure: `pyproject.toml` (setuptools src-layout), runtime package under `src/aiagent` with `config.py`, `agent.py`, `tools.py`, and `cli.py`; `.env` driven secrets with sample `.env.example`; tests directory not yet created.
