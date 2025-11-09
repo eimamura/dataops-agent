@@ -6,6 +6,7 @@ Starter LangChain project for building task-focused AI agents that automate data
 - Structured settings via Pydantic.
 - CLI runner powered by Typer + Rich.
 - LangChain agent scaffold with pluggable tools.
+- Optional SQL generation + execution tool via LangChain SQLDatabaseChain + SQLAlchemy.
 
 ## Getting Started
 ```bash
@@ -17,6 +18,10 @@ cp .env.example .env
 
 Configure `.env` with either your Hugging Face credentials or OpenAI credentials. Use
 `LLM_PROVIDER` to toggle between the two.
+
+To enable SQL assistance, set `DATABASE_URL` to any SQLAlchemy connection string
+(e.g., `postgresql+psycopg://dataops:changeme@localhost:5432/dataops`). The agent
+can then generate SQL, execute it, and summarize the result set.
 
 ## Usage
 Run the CLI and start chatting with the agent:
@@ -33,6 +38,7 @@ Use `python -m aiagent.cli --help` for interactive mode and options such as enab
 - `HUGGINGFACEHUB_API_TOKEN`: optional when using public repos but required for private endpoints.
 - `OPENAI_API_KEY` / `OPENAI_API_BASE`: required when `LLM_PROVIDER=openai` (base URL only when targeting Azure or compatible endpoints).
 - `MAX_NEW_TOKENS`: cap responses for predictable billing/perf.
+- `DATABASE_URL`: optional SQLAlchemy connection string used by the SQL tool (Postgres example above).
 
 ## Local Postgres (Docker)
 We ship a `compose.yaml` that provisions PostgreSQL 16 for local persistence and agent experimentation.

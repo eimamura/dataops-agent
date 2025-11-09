@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     openai_api_key: str | None = Field(default=None, alias="OPENAI_API_KEY")
     openai_base_url: str | None = Field(default=None, alias="OPENAI_API_BASE")
     notes_path: str = "notes.md"
+    database_url: str | None = Field(default=None, alias="DATABASE_URL")
 
 
 @lru_cache(maxsize=1)

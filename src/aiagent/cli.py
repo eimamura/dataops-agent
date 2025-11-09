@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any, Optional
 
 import typer
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
 from rich.console import Console
 from rich.prompt import Prompt
 
@@ -34,9 +35,10 @@ def main(
     """Execute the LangChain agent."""
     settings = _resolve_settings(verbose)
     agent = build_agent(settings)
+    conversation: list[BaseMessage] = []
 
     if prompt:
-        _run_once(agent, prompt)
+        _run_once(agent, prompt, conversation)
         return
 
     if not interactive:
@@ -48,27 +50,30 @@ def main(
         if user_input.lower() in {"exit", "quit"}:
             console.print("[yellow]Goodbye![/]")
             break
-        _run_once(agent, user_input)
+        _run_once(agent, user_input, conversation)
 
 
-def _run_once(agent, user_input: str) -> None:
+def _run_once(agent, user_input: str, conversation: list[BaseMessage]) -> None:
+    user_message = HumanMessage(content=user_input)
+    conversation.append(user_message)
     try:
-        response = agent.invoke({"messages": _as_user_messages(user_input)})
+        response = agent.invoke({"messages": conversation})
     except Exception as exc:  # pragma: no cover - surface to CLI
+        conversation.pop()  # roll back user message in history
         console.print(f"[red]Agent failed:[/] {exc}")
         return
 
-    console.print(f"[magenta]Agent:[/] {_extract_text_response(response)}")
-
-
-def _as_user_messages(user_input: str) -> list[dict[str, str]]:
-    """Shape CLI input in the format LangGraph expects."""
-    return [{"role": "user", "content": user_input}]
+    output_text = _extract_text_response(response)
+    conversation.append(AIMessage(content=output_text))
+    console.print(f"[magenta]Agent:[/] {output_text}")
 
 
 def _extract_text_response(response: Any) -> str:
     """Coerce the agent response into printable text."""
     if isinstance(response, dict):
+        output = response.get("output")
+        if isinstance(output, str) and output.strip():
+            return output
         messages = response.get("messages")
         if isinstance(messages, list) and messages:
             message = messages[-1]

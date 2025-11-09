@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from typing import Final
 
-from langchain.agents import create_agent
+from langchain.agents import AgentExecutor, create_tool_calling_agent
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
-from langgraph.graph.state import CompiledStateGraph
 
 from .config import Settings
 from .tools import build_default_tools
@@ -90,14 +90,26 @@ def _system_prompt(mode: str) -> str:
     return SYSTEM_PROMPTS.get(mode, REACT_SYSTEM_PROMPT)
 
 
-def build_agent(settings: Settings) -> CompiledStateGraph:
+def _build_agent_prompt(system_prompt: str) -> ChatPromptTemplate:
+    """Prompt template that threads history + scratchpad."""
+    return ChatPromptTemplate.from_messages(
+        [
+            ("system", system_prompt),
+            MessagesPlaceholder(variable_name="messages", optional=True),
+            MessagesPlaceholder(variable_name="agent_scratchpad"),
+        ]
+    )
+
+
+def build_agent(settings: Settings) -> AgentExecutor:
     """Construct the LangChain agent executor."""
     chat_llm = _build_chat_model(settings)
 
     tools = build_default_tools(settings, chat_llm)
-    return create_agent(
-        model=chat_llm,
+    prompt = _build_agent_prompt(_system_prompt(settings.agent_mode))
+    agent_runnable = create_tool_calling_agent(chat_llm, tools, prompt)
+    return AgentExecutor(
+        agent=agent_runnable,
         tools=tools,
-        system_prompt=_system_prompt(settings.agent_mode),
-        debug=settings.verbose,
+        verbose=settings.verbose,
     )
