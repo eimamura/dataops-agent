@@ -26,7 +26,7 @@ can then generate SQL, execute it, and summarize the result set.
 ## Usage
 Run the CLI and start chatting with the agent:
 ```bash
-python -m aiagent.cli "Summarize the current airflow DAG health."
+python -m aiagent.cli "show me all users"
 ```
 
 Use `python -m aiagent.cli --help` for interactive mode and options such as enabling notes or setting temperature.
