@@ -19,6 +19,9 @@ cp .env.example .env
 Configure `.env` with either your Hugging Face credentials or OpenAI credentials. Use
 `LLM_PROVIDER` to toggle between the two.
 
+The `dev` extras install pytest, Ruff, and `ipykernel`, so Jupyter notebooks (see `notebooks/`) can target the
+same environment as the CLI.
+
 To enable SQL assistance, set `DATABASE_URL` to any SQLAlchemy connection string
 (e.g., `postgresql+psycopg://dataops:changeme@localhost:5432/dataops`). The agent
 can then generate SQL, execute it, and summarize the result set.
