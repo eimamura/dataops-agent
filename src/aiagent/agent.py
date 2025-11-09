@@ -94,7 +94,7 @@ def build_agent(settings: Settings) -> CompiledStateGraph:
     """Construct the LangChain agent executor."""
     chat_llm = _build_chat_model(settings)
 
-    tools = build_default_tools(settings)
+    tools = build_default_tools(settings, chat_llm)
     return create_agent(
         model=chat_llm,
         tools=tools,
